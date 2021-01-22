@@ -9,12 +9,13 @@ output:
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
 
 #The Investgative Problem
-What impact do opinions on qualites of a canidate have on the outcome of the presendetal elections?
+How are repubicans described diffrently than democrats
 
- + 
+
 
 #Set Up
-Install Packages
+
+Install Packages and load the raw data
 
 ```{r load libraries, warning=FALSE, message=FALSE, include=FALSE}
 packages.used=as.list(
@@ -25,7 +26,8 @@ packages.used=as.list(
   "RColorBrewer",
   "data.table",
   "ggplot2",
-  "dplyr")
+  "dplyr",
+  "gdata")
 )
 
 check.pkg = function(x){
@@ -35,20 +37,92 @@ check.pkg = function(x){
 }
 
 lapply(packages.used, check.pkg)
-```
 
-Load Data
-
-```{r read in data, message = F}
 library(haven)
 anes_dat <-
     read_sav("../data/anes_timeseries_cdf.sav")
 ```
 
+Create two output data files, one for the perceptions of the democratic candidate, another for the perceptions of the republican candidate. Both these datasets will also include the vote decision, to see how connected perceptions are to voter turnouts
+
+```{r labelled variables subset}
+Election_years=as.character(seq(1952, 2016, 4))
+
+anes_dem=anes_dat%>%
+  mutate(
+    year=as_factor(VCF0004),
+    vote=as_factor(VCF0706),
+    Intelligent	=	as_factor(	VCF0350	),
+    Compassionate	=	as_factor(	VCF0351	),
+    Decent	=	as_factor(	VCF0352	),
+    Inspiring	=	as_factor(	VCF0353	),
+    Knowledgeable	=	as_factor(	VCF0354	),
+    Moral	=	as_factor(	VCF0355	),
+    Leadership	=	as_factor(	VCF0356	),
+    Cares	=	as_factor(	VCF0357	)
+  )%>%
+  filter(year %in% Election_years)
+
+anes_dem = anes_dem%>%
+  select(year, vote, Intelligent,	Compassionate,	Decent,	Inspiring,	Knowledgeable,	Moral,	Leadership,	Cares)%>%
+  gather(key = "quality", value = "measure", -year, -vote, na.rm = TRUE,
+  convert = FALSE, factor_key = FALSE)
+
+save(anes_dem, file="../output/data_dem.RData")
+
+
+anes_rep=anes_dat%>%
+  mutate(
+    year=as_factor(VCF0004),
+    vote=as_factor(VCF0706),
+    Intelligent	=	as_factor(	VCF0362	),
+    Compassionate	=	as_factor(	VCF0363	),
+    Decent	=	as_factor(	VCF0364	),
+    Inspiring	=	as_factor(	VCF0365	),
+    Knowledgeable	=	as_factor(	VCF0366	),
+    Moral	=	as_factor(	VCF0367	),
+    Leadership	=	as_factor(	VCF0368	),
+    Cares	=	as_factor(	VCF0369	)
+  )%>%
+  filter(year %in% Election_years)
+
+
+anes_rep = anes_rep %>% 
+  select(year, vote, Intelligent,	Compassionate,	Decent,	Inspiring,	Knowledgeable,	Moral,	Leadership,	Cares) %>%
+  gather(key = "quality", value = "measure", -year, -vote, na.rm = TRUE,
+  convert = FALSE, factor_key = FALSE)
+
+save(anes_rep, file="../output/data_rep.RData")
+
+```
+
+Let's look first at intelligence
+```{r}
+anes_all <- gdata::combine(anes_dem, anes_rep)
+
+save(anes_all, file="../output/data_all.RData")
+
+```
+
+
 
 ```{r}
-anes_dat$VCF0338 
+
+
+p<- ggplot(anes_all, mapping = aes(fill=source, x=measure)) + 
+  geom_bar(position="dodge", stat="count") +
+  scale_fill_manual(values = c("#054C70","#b5040a"))
+
+
+p + facet_grid(quality ~ year)
+p + facet_wrap(~quality)
+
+
+  #ggplot(anes_rep %>% drop_na()) + 
+  #geom_bar(aes(x=Inspiring), stat="count", fill = "red") 
+  
 ```
+
 
 When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
 
