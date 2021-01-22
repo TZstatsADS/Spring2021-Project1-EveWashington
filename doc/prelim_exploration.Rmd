@@ -110,12 +110,13 @@ save(anes_all, file="../output/data_all.RData")
 
 
 p<- ggplot(anes_all, mapping = aes(fill=source, x=measure)) + 
-  geom_bar(position="dodge", stat="count") +
+  geom_bar(position="dodge") +
   scale_fill_manual(values = c("#054C70","#b5040a"))
 
 
 p + facet_grid(quality ~ year)
 p + facet_wrap(~quality)
+p + facet_grid(quality ~ vote)
 
 
   #ggplot(anes_rep %>% drop_na()) + 
@@ -123,6 +124,9 @@ p + facet_wrap(~quality)
   
 ```
 
+```{r}
+p$data[[1]]
+```
 
 When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
 
