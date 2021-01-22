@@ -48,7 +48,8 @@ packages.used=as.list(
   "devtools",
   "RColorBrewer",
   "data.table",
-  "ggplot2")
+  "ggplot2",
+  "dplyr")
 )
 
 check.pkg = function(x){
