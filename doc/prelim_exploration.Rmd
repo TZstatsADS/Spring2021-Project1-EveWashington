@@ -1,5 +1,5 @@
 ---
-title: "Prelimanary Analysis"
+title: "Party Perception's Role in Elections"
 output:
   html_document:
     df_print: paged
@@ -8,12 +8,11 @@ output:
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
 
-#The Investgative Problem
-How are repubicans described diffrently than democrats
+#Perception in elections 
 
+[intro about what roles perception of qualities play in elections]
 
-
-#Set Up
+##Set Up
 
 Install Packages and load the raw data
 
@@ -94,40 +93,69 @@ anes_rep = anes_rep %>%
 
 save(anes_rep, file="../output/data_rep.RData")
 
-```
-
-Let's look first at intelligence
-```{r}
 anes_all <- gdata::combine(anes_dem, anes_rep)
 
 save(anes_all, file="../output/data_all.RData")
 
 ```
 
-
+For initial analysis lets make some bar charts, later we will facet them to look at the data diffrently. 
 
 ```{r}
 
 
-p<- ggplot(anes_all, mapping = aes(fill=source, x=measure)) + 
+p<- ggplot(anes_all, mapping = aes(fill=source, x=measure, group=interaction(source, quality), y= (..prop..))) + 
   geom_bar(position="dodge") +
-  scale_fill_manual(values = c("#054C70","#b5040a"))
-
-
-p + facet_grid(quality ~ year)
-p + facet_wrap(~quality)
-p + facet_grid(quality ~ vote)
-
-
-  #ggplot(anes_rep %>% drop_na()) + 
-  #geom_bar(aes(x=Inspiring), stat="count", fill = "red") 
+  scale_fill_manual(values = c("#054C70","#b5040a")) +
+  geom_text(aes(label=scales::percent(round(..prop..,2)), 
+                y=..prop..), stat="count", vjust=-.5, position=position_dodge(.9)) +
+  scale_y_continuous(limits=c(0,1),labels = scales::percent) 
   
 ```
 
+
+##What qualities describe do voters use to describe Democrats and Republicans?
 ```{r}
-p$data[[1]]
+p + facet_wrap(~quality)
+
 ```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+```{r}
+seq(41, 64, 8)
+```
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+##How has voters decisons around a party's canidates change over time?
+```{r}
+p + facet_grid(quality ~ year)
+time <- p + facet_grid(quality ~ year)
+
+```
+
+```{r}
+time_data <- layer_data(time, 1)
+
+#filter out years without data
+time_data <- filter(time_data, (xmax < 2.5 & as.integer(PANEL) > 40) )
+```
+
+```{r}
+#add year
+time_data$year <- as.integer(time_data$PANEL)
+for (x in seq(0,7)){
+  time_data$year[as.integer(time_data$PANEL)==seq(41+x, 64, 8)] <- (1980 + 4*x)
+}
+
+
+time_data$quality <- time_data$PANEL
+time_data$quality[as.integer(time_data$PANEL)==seq(41, 48)] <- "Knowledgeable"
+time_data$quality[as.integer(time_data$PANEL)==seq(49, 56 )] <- "Leadership"
+time_data$quality[as.integer(time_data$PANEL)==seq(57, 64 )] <- "Moral"
+
+```
+
+##What is the relationship between perception and votes?
+```{r}
+p + facet_grid(quality ~ vote)
+
+```
+
