@@ -26,7 +26,8 @@ packages.used=as.list(
   "data.table",
   "ggplot2",
   "dplyr",
-  "gdata")
+  "gdata",
+  "formattable")
 )
 
 check.pkg = function(x){
@@ -99,34 +100,35 @@ save(anes_all, file="../output/data_all.RData")
 
 ```
 
-For initial analysis lets make some bar charts, later we will facet them to look at the data diffrently. 
 
-```{r}
 
+##What qualities describe do voters use to describe Democrats and Republicans?
+```{r turnout analysis, fig.height=8, fig.width=10}
 
 p<- ggplot(anes_all, mapping = aes(fill=source, x=measure, group=interaction(source, quality), y= (..prop..))) + 
   geom_bar(position="dodge") +
   scale_fill_manual(values = c("#054C70","#b5040a")) +
-  geom_text(aes(label=scales::percent(round(..prop..,2)), 
+  geom_text(aes(label=..count.., 
                 y=..prop..), stat="count", vjust=-.5, position=position_dodge(.9)) +
   scale_y_continuous(limits=c(0,1),labels = scales::percent) 
   
-```
-
-
-##What qualities describe do voters use to describe Democrats and Republicans?
-```{r}
-p + facet_wrap(~quality)
+p + facet_wrap(~quality, ncol=2)
 
 ```
 
-```{r}
-seq(41, 64, 8)
-```
 
 ##How has voters decisons around a party's canidates change over time?
-```{r}
-p + facet_grid(quality ~ year)
+```{r turnout analysis, fig.height=6, fig.width=14}
+
+time_plt <- ggplot(subset(anes_all, quality %in% c("Knowledgeable", "Leadership", "Moral")), mapping = aes(fill=source, x=measure, group=interaction(source, quality), y= (..prop..))) + 
+  geom_bar(position="dodge") +
+  scale_fill_manual(values = c("#054C70","#b5040a")) +
+  #geom_text(aes(label=scales::percent(round(..prop..,2)), 
+                #y=..prop..), stat="count", vjust=-.5, position=position_dodge(.9)) +
+  scale_y_continuous(limits=c(0,1),labels = scales::percent) 
+
+
+time_plt + facet_grid(quality ~ year)
 time <- p + facet_grid(quality ~ year)
 
 ```
@@ -135,27 +137,103 @@ time <- p + facet_grid(quality ~ year)
 time_data <- layer_data(time, 1)
 
 #filter out years without data
-time_data <- filter(time_data, (xmax < 2.5 & as.integer(PANEL) > 40) )
+time_data <- filter(time_data, (xmax < 2.5 & as.integer(PANEL) > 40))
+time_data$year <- as.integer(time_data$PANEL)
+time_data$quality <- as.integer(time_data$PANEL)
+time_data$panel_num <- as.integer(time_data$PANEL)
+
 ```
 
 ```{r}
 #add year
-time_data$year <- as.integer(time_data$PANEL)
+
 for (x in seq(0,7)){
-  time_data$year[as.integer(time_data$PANEL)==seq(41+x, 64, 8)] <- (1980 + 4*x)
+  time_data$year[time_data$panel_num %in% seq(41+x, 64, 8)] <- (1980 + 4*x)
+                      
+  #time_data$year[as.integer(time_data$PANEL)==seq(41+x, 64, 8)] <- (1980 + 4*x)
 }
 
+#add quality
 
-time_data$quality <- time_data$PANEL
-time_data$quality[as.integer(time_data$PANEL)==seq(41, 48)] <- "Knowledgeable"
-time_data$quality[as.integer(time_data$PANEL)==seq(49, 56 )] <- "Leadership"
-time_data$quality[as.integer(time_data$PANEL)==seq(57, 64 )] <- "Moral"
+time_data$quality[time_data$panel_num %in% seq(41, 48)] <- "Knowledgeable"
+time_data$quality[time_data$panel_num %in% seq(49, 56 )] <- "Leadership"
+time_data$quality[time_data$panel_num %in% seq(57, 64 )] <- "Moral"
+
+time_data <- time_data %>% group_by(quality, fill, year) %>%  summarize(percent = sum(y))
+
+
+```
+
+```{r turnout analysis, fig.height=10, fig.width=8}
+# ggplot(subset(time_data, quality=="Knowledgeable"), aes(x=year, y=percent, group=fill, color=fill)) +
+#   geom_line() +
+#   facet_wrap(~quality, ncol=1) +
+#   scale_y_continuous(limits=c(0,1),labels = scales::percent) +
+#   scale_color_manual(values = c("#054C70","#b5040a")) 
+# 
+# ggplot(subset(time_data, quality=="Leadership"), aes(x=year, y=percent, group=fill, color=fill)) +
+#   geom_line() +
+#   facet_wrap(~quality, ncol=1) +
+#   scale_y_continuous(limits=c(0,1),labels = scales::percent) +
+#   scale_color_manual(values = c("#054C70","#b5040a")) 
+# 
+# ggplot(subset(time_data, quality=="Moral"), aes(x=year, y=percent, group=fill, color=fill)) +
+#   geom_line() +
+#   facet_wrap(~quality, ncol=1) +
+#   scale_y_continuous(limits=c(0,1),labels = scales::percent) +
+#   scale_color_manual(values = c("#054C70","#b5040a"))
+
+ ggplot(time_data, aes(x=year, y=percent, group=fill, color=fill)) +
+  geom_line() +
+  facet_wrap(~quality, ncol=1) +
+  scale_y_continuous(limits=c(0,1),labels = scales::percent) +
+  scale_color_manual(values = c("#054C70","#b5040a"))
+
+
 
 ```
 
 ##What is the relationship between perception and votes?
+```{r turnout analysis, fig.height=14, fig.width=10}
+
+votes <- ggplot(subset(anes_all, vote %in% c("1. Democrat", "2. Republican")), mapping = aes(fill=source, x=measure, group=interaction(source, quality), y= (..prop..))) + 
+  geom_bar(position="dodge") +
+  scale_fill_manual(values = c("#054C70","#b5040a")) +
+  geom_text(aes(label=scales::percent(round(..prop..,2)), 
+                y=..prop..), stat="count", vjust=-.5, position=position_dodge(.9)) +
+  scale_y_continuous(limits=c(0,1),labels = scales::percent)  + 
+  facet_grid(quality~ vote)
+
+votes
+```
 ```{r}
-p + facet_grid(quality ~ vote)
+
+get_conditonal <- function(qual, x=2) {
+  
+  conditions <- anes_all %>% filter(vote %in% c("1. Democrat", "2. Republican"), measure %in% c("1. Extremely well","2. Quite well" ), quality==qual)
+
+  test <- table(conditions$vote, conditions$source)[-c(1,4,5,6),]
+
+  # formattable(as.data.frame.matrix(test))
+  
+  if (x > 0 & x<3) {
+    formattable(as.data.frame.matrix(round(prop.table(test,x), 3)), 
+              list(anes_dem = color_bar("#adc0c9"),
+                   anes_rep = color_bar("#ebb2b4")))
+  } else {
+    formattable(as.data.frame.matrix(round(prop.table(test), 3)), 
+              list(anes_dem = color_bar("#adc0c9"),
+                   anes_rep = color_bar("#ebb2b4")))
+  }
+  
+}
+
+
+get_conditonal("Cares" )
+get_conditonal("Moral")
+get_conditonal("Compassionate")
+
 
 ```
+Given that you think the democratic candidate Cares, Quite Well or Extemely well, the likely hood you will vote for the democrat is 73%. A similar trend is seen for republican candidates, given that you think a republican
 
