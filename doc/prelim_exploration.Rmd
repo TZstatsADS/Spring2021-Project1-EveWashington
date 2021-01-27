@@ -5,8 +5,8 @@ output:
     df_print: paged
   pdf_document: default
 ---
-
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
+
 
 #Perception in elections 
 
@@ -198,23 +198,7 @@ This graph allows us to explore every ranking across all the years, but it’s h
 
 
 ```{r, fig.height=10, fig.width=8}
-# ggplot(subset(time_data, quality=="Knowledgeable"), aes(x=year, y=percent, group=fill, color=fill)) +
-#   geom_line() +
-#   facet_wrap(~quality, ncol=1) +
-#   scale_y_continuous(limits=c(0,1),labels = scales::percent) +
-#   scale_color_manual(values = c("#054C70","#b5040a")) 
-# 
-# ggplot(subset(time_data, quality=="Leadership"), aes(x=year, y=percent, group=fill, color=fill)) +
-#   geom_line() +
-#   facet_wrap(~quality, ncol=1) +
-#   scale_y_continuous(limits=c(0,1),labels = scales::percent) +
-#   scale_color_manual(values = c("#054C70","#b5040a")) 
-# 
-# ggplot(subset(time_data, quality=="Moral"), aes(x=year, y=percent, group=fill, color=fill)) +
-#   geom_line() +
-#   facet_wrap(~quality, ncol=1) +
-#   scale_y_continuous(limits=c(0,1),labels = scales::percent) +
-#   scale_color_manual(values = c("#054C70","#b5040a"))
+
 
  ggplot(time_data, aes(x=year, y=percent, group=fill, color=fill)) +
   geom_line() +
@@ -234,7 +218,7 @@ Perhaps the most interesting case is that of morals;  a large hit of morals happ
 
 ##What is the relationship between character perception and votes?
 
-Last but not least, let’s Introduce how these perceptions impact voting outcomes. Lets start with a look at th Raw Data. 
+Last but not least, let’s Introduce how these perceptions impact voting outcomes. Lets start with a highlevel look at the Data. 
 
 ```{r, fig.height=14, fig.width=10}
 
@@ -244,7 +228,7 @@ votes <- ggplot(subset(anes_all, vote %in% c("1. Democrat", "2. Republican")), m
   geom_text(aes(label=..count.., 
                 y=..prop..), stat="count", vjust=-.5, position=position_dodge(.9)) +
   scale_y_continuous(limits=c(0,1),labels = scales::percent)  + 
-  facet_grid(quality~ vote) +
+  facet_grid(quality~ vote) 
   
   
 
