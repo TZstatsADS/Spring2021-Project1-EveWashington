@@ -1,29 +1,27 @@
 ---
 title: "Party Perception's Role in Elections"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 ---
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
 
 
-#Perception in elections 
+# Perception in elections 
 
 In 1980 it was competence, leadership in 1984, patriotism in 1988, trustworthiness in 1992 and 1996, integrity and leadership ability in 2000, decisiveness and leadership in 2004, and Knowledge and temperament in 2008—these candidate traits have been deciding factors in elections According to the Inter-university Consortium for Political and Social Research, candidate traits can make or break an election outcome. 
 
 While the issues are important to many voters, the images of candidates that voters shape in their minds are heavily influenced by voters' perception of a candidate's personal qualities.  You're more likely to vote for a candidate who you think is honest—or what some might call moral—than a candidate you see as untrustworthy. Or, If you're on the fence you're likely to select the candidate that you think is a better leader. A voter’s vote for president is a very personal one, and traits play a role in shaping that vote. 
 
-The American National Election Studies (ANES) are surveys of voters in the U.S. on a national scale. For each presidential election since 1980, ANES has collected information about the personality traits of presidential candidates, by asking how well 8 personality traits describe republican and democratic candidates. The traits surveyed where Intelligence, Compassion, Decency, Inspiring, Knowledge, Morals, Leadership, and Caring, and respondents could rank each trait on a scale of one to four, one being “Extremely well” and four being “Not well at all.”
+The American National Election Studies (ANES) are surveys of voters in the U.S. on a national scale. For each presidential election since 1980, ANES has collected information about the personality traits of presidential candidates, by asking how well 8 personality traits describe republican and democratic candidates. The traits surveyed where Intelligence, Compassion, Decency, Inspiring, Knowledge, Morals, Leadership, and Caring, and respondents could rank each trait on a scale of one to four, one being “Extremely well” and four being “Not well at all.” For this analysis anes_dem, refers to opinions on the democratic candidate, and anes_rep refers to opinions on the republican.
 
-With this data, we explore not only the perceptions of individuals in individual races, but general perceptions b
+With this data, we explore not only the perceptions of individuals in individual races, but general perceptions by party, how that has changed over time, and what impact that has on voters' decisions. 
 
-
-##Set Up
-
-Install Packages and load the raw data
 
 ```{r load libraries, warning=FALSE, message=FALSE, include=FALSE}
+
+## Set Up
 packages.used=as.list(
   c(
   "tidyverse",
@@ -48,11 +46,9 @@ lapply(packages.used, check.pkg)
 library(haven)
 anes_dat <-
     read_sav("../data/anes_timeseries_cdf.sav")
-```
 
-Create two output data files, one for the perceptions of the democratic candidate, another for the perceptions of the republican candidate. Both these datasets will also include the vote decision, to see how connected perceptions are to voter turnouts
+#Create two output data files, one for the perceptions of the democratic candidate, another for the perceptions of the republican candidate. Both these datasets will also include the vote decision, to see how connected perceptions are to voter turnouts. We will also combine them to a master data set so here on out anes_dem, refers to opinions on the democratic candidate, and anes_rep refers to opinions on therepublican.
 
-```{r}
 Election_years=as.character(seq(1952, 2016, 4))
 
 anes_dem=anes_dat%>%
@@ -110,14 +106,14 @@ save(anes_all, file="../output/data_all.RData")
 
 
 
-##What qualities describe do voters use to describe Democrats and Republicans?
+## What qualities describe do voters use to describe Democrats and Republicans?
 Outside of the candidate, there is first the question of the party as a whole. Turn on Fox News, and you might hear Tucker Carlson describe democrats as “vindictive” — meaning immoral and lacking decency— or “snowflakes'' — meaning weak or overly sensitive. Switch to MSNBC and you’ll hear about republican  “hacks”— lacking leadership and compassion— and “bigots” — missing knowledge and honesty. 
 
 But there is a better way to learn about what qualifies to define a party. 
 
 With ANES data we can look at the opinions of candidates' traits from either party. On the graphs below, a series of grouped bar charts show the percentage of respondents who have picked each ranking, split by the 8 different characteristics. Within any given characteristic there is approximately the same number of respondents for the Democratic candidate and the Republican candidate,  however, some characteristics have more respondents overall than others. For that reason, each bar is labeled with the raw number of respondents who compose that percentage. 
 
-```{r, fig.height=8, fig.width=10}
+```{r, fig.height=8, fig.width=10, warning=FALSE, echo=FALSE}
 
 #aes(label=scales::percent(round(..prop..,2)), y=..prop..)
 
@@ -142,7 +138,7 @@ This visualization allows a less partisan way than cable news to think about how
 While we do see some differences in overall party perception, the largest gap in opinion we see is 19 percentage points. This is significant considering the thousands of responses that we have available,  but isn't massive, suggesting that overall differences in party perception may be caused more by personal bias than actual public opinion.
 
 
-##How has voters' perceptions around a party’s candidates changed over time?
+## How has voters' perceptions around a party’s candidates changed over time?
 
 
 This first example gives us an understanding of the sum of all years but political parties can often change dramatically over time, and fluctuate based on a particular race.  To break this down further let's look at how the perception of some of these characteristics has changed over 28 years of ANES data available. 
@@ -150,7 +146,7 @@ This first example gives us an understanding of the sum of all years but politic
 During that 28 year timespan, complete data is only available for three out of our eight characteristics, Knowledgeable, Leadership, and Morals. With this, we can make a chart similar to the first one. 
 
 
-```{r, fig.height=6, fig.width=14}
+```{r, fig.height=6, fig.width=14, warning=FALSE, echo=FALSE}
 
 time_plt <- ggplot(subset(anes_all, quality %in% c("Knowledgeable", "Leadership", "Moral")), mapping = aes(fill=source, x=measure, group=interaction(source, quality), y= (..prop..))) + 
   geom_bar(position="dodge") +
@@ -166,7 +162,7 @@ time <- p + facet_grid(quality ~ year)
 
 ```
 
-```{r}
+```{r, warning=FALSE, echo=FALSE}
 time_data <- layer_data(time, 1)
 
 #filter out years without data
@@ -197,7 +193,7 @@ time_data <- time_data %>% group_by(quality, fill, year) %>%  summarize(percent 
 This graph allows us to explore every ranking across all the years, but it’s hard to see trends. Let's look Instead at a line chart plotting the proportion of respondents that think a candidate exemplifies each quality extremely or quite well. 
 
 
-```{r, fig.height=10, fig.width=8}
+```{r, fig.height=10, fig.width=8, warning=FALSE, echo=FALSE}
 
 
  ggplot(time_data, aes(x=year, y=percent, group=fill, color=fill)) +
@@ -216,13 +212,14 @@ Perhaps the most interesting case is that of morals;  a large hit of morals happ
 
 
 
-##What is the relationship between character perception and votes?
+## What is the relationship between character perception and votes?
 
 Last but not least, let’s Introduce how these perceptions impact voting outcomes. Lets start with a highlevel look at the Data. 
 
-```{r, fig.height=14, fig.width=10}
+```{r, fig.height=14, fig.width=10, warning=FALSE, echo=FALSE}
 
-votes <- ggplot(subset(anes_all, vote %in% c("1. Democrat", "2. Republican")), mapping = aes(fill=source, x=measure, group=interaction(source, quality), y= (..prop..))) + 
+votes <- ggplot(subset(anes_all, vote %in% c("1. Democrat", "2. Republican")), 
+                mapping = aes(fill=source, x=measure, group=interaction(source, quality), y= (..prop..))) + 
   geom_bar(position="dodge") +
   scale_fill_manual(values = c("#054C70","#b5040a")) +
   geom_text(aes(label=..count.., 
@@ -234,7 +231,7 @@ votes <- ggplot(subset(anes_all, vote %in% c("1. Democrat", "2. Republican")), m
 
 votes
 ```
-```{r}
+```{r, warning=FALSE, echo=FALSE}
 
 get_conditonal <- function(qual, x=2) {
   
@@ -262,8 +259,8 @@ Some trends are obvious here, but with some conditional prob we can see deeper i
 
 Take the characteristic caring for an example. This table shows the conditional probabilities, that given that you think a candidate cares, quite Well or extremely well, you will vote republican or democrat. 
 
-```{r}
-get_conditonal("Cares" )
+```{r, warning=FALSE}
+get_conditonal("Cares")
 ```
 
 
@@ -274,7 +271,7 @@ This gets more interesting when you begin to compare, who a respondent does not 
 
 That pattern follows for all traits. 
 
-```{r}
+```{r, warning=FALSE}
 get_conditonal("Moral")
 get_conditonal("Compassionate")
 get_conditonal("Intelligent")
